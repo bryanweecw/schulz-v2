@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import FileUploadComponent from "./FileUploadComponent";
 import AudioTranscriptTab from "./AudioTranscriptTab";
+import MeetingNotes from "./MeetingNotes";
+
 type Props = {
   values: {
     value: string;
@@ -30,8 +32,7 @@ const DashboardTabComponent = ({ values }: Props) => {
         })}
       </TabsList>
       <TabsContent value="Meeting Notes" className="mt-0 border-0 p-0">
-        Meeting notes
-        {/* <MeetingNotes /> */}
+        <MeetingNotes />
       </TabsContent>
       <TabsContent value="Audio Transcript" className="mt-0 border-0 p-0">
         <AudioTranscriptTab />
