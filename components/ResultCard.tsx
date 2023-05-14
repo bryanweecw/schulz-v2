@@ -4,6 +4,10 @@ import { Switch } from "./ui/switch";
 import { Textarea } from "./ui/textarea";
 import { capitaliseFirstLetter } from "@/lib/utils";
 import { SummaryObjectMap } from "./MeetingNotes";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "./ui/dialog";
+import { ClipLoader } from "react-spinners";
+import { DialogHeader, DialogFooter } from "./ui/dialog";
+import { useSummaryInfoContext } from "./context/SummaryInfoContext";
 
 export interface SummaryObject {
     [key: string]: string;
@@ -17,9 +21,40 @@ interface Props {
 
 export default function ResultCard({ summary, notLast, editFunction }: Props) {
 
+    //  GET NOTES FROM CONTEXT
+
+    const {
+        savedNotes,
+    } = useSummaryInfoContext();
+
     const [viewMode, setViewMode] = useState<"Markdown" | "Beautified">(
         "Beautified"
     );
+
+    const [loading, setLoading] = useState(false)
+    const [dialog, setDialog] = useState(false)
+    const [actions, setActions] = useState({})
+
+    const getActions = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    ) => {
+        e.preventDefault();
+        fetch("/api/generate-actions", {
+            method: "POST",
+            body: JSON.stringify({
+                notes: savedNotes.current,
+                previousResponse: JSON.stringify(summary["summaryObject"])
+            })
+        }).then(async (res) => {
+            const parsedBody = await res.json();
+            console.log(parsedBody.data.actions)
+            setActions(parsedBody.data.actions)
+            setDialog(true)
+        }
+        ).catch((err) => {
+            console.log(err);
+        })
+    }
 
     const handleViewModeToggle = () => {
         if (viewMode === "Markdown") {
@@ -87,6 +122,40 @@ export default function ResultCard({ summary, notLast, editFunction }: Props) {
                                     />
                                 </div>
                                 <div className="flex flex-row gap-2">
+                                    <Dialog open={dialog} onOpenChange={setDialog}>
+                                        <DialogTrigger>
+                                            <Button onClick={(e) => {
+                                                getActions(e)
+                                            }}>
+                                                Actions
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Here are possible follow-up actions</DialogTitle>
+                                                <DialogDescription>
+                                                    {Object.entries(actions).map(([key, value]) => {
+                                                        return (
+                                                            <div key={key} className="flex-auto py-2">
+                                                                <dt className="text-sm font-semibold leading-6 text-gray-900">{capitaliseFirstLetter(key)}:</dt>
+                                                                <dd className="mt-1 text-xs font-semibold leading-6 text-gray-900">{value}</dd>
+                                                            </div>
+                                                        )
+                                                    }
+                                                    )
+                                                    }
+                                                    {/* <Textarea>
+                                                        {JSON.stringify(actions, null, 2)}
+                                                    </Textarea> */}
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <DialogFooter>
+                                                {/* <Button variant="secondary">
+                                                    Cancel
+                                                </Button> */}
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
                                     <Button className="w-1/2" onClick={() => {
                                         editFunction(summary)
                                     }}>

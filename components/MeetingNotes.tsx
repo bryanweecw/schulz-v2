@@ -155,8 +155,6 @@ const MeetingNotes = () => {
       });
   };
 
-  console.log(summaryInfo)
-
   return (
     <div className="grid grid-cols-4 space-x-3">
       <div className="flex h-full flex-col space-y-4 col-span-3">
